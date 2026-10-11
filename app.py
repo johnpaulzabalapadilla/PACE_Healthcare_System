@@ -56,10 +56,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- SYSTEM NAVIGATION SIDEBAR ---
+# Toggle/Checkbox para sa Admin/Doctor testing habang nasa Patient Kiosk
+show_sidebar_in_kiosk = st.sidebar.checkbox("🔓 Show Sidebar Menu in Patient Kiosk", value=True)
+
 system_role = st.sidebar.radio("🌐 Select System Portal", ["🏥 Patient Kiosk", "👨‍⚕️ Doctor Portal", "📋 Helpdesk / Admin Desk"])
 
-# 🔒 HIDDEN SIDEBAR LOGIC: Kapag Patient Kiosk ang napili, itatago ang sidebar gamit ang CSS!
-if system_role == "🏥 Patient Kiosk":
+# 🔒 HIDDEN SIDEBAR LOGIC: Kapag Patient Kiosk ang napili AT NAKA-OFF ang toggle, itatago ang sidebar gamit ang CSS!
+if system_role == "🏥 Patient Kiosk" and not show_sidebar_in_kiosk:
     st.markdown("""
         <style>
             [data-testid="stSidebar"] {
@@ -69,7 +72,6 @@ if system_role == "🏥 Patient Kiosk":
     """, unsafe_allow_html=True)
 
 # Configure Gemini API
-# ⚠️ Replace 'YOUR_GEMINI_API_KEY_HERE' with your real key starting with 'AIzaSy...'
 API_KEY = st.secrets.get("GEMINI_API_KEY", "YOUR_GEMINI_API_KEY_HERE")
 
 if API_KEY and API_KEY != "YOUR_GEMINI_API_KEY_HERE":
@@ -153,7 +155,7 @@ def get_doctor_roster_names():
     return ["Dr. Sarah Evans", "Dr. Marcus Vance", "Dr. Althea Reyes", "Dr. Jonathan Cross", "Dr. Paul"]
 
 # ==============================================================================
-# 1️⃣ PATIENT KIOSK PORTAL (HIDDEN SIDEBAR HERE)
+# 1️⃣ PATIENT KIOSK PORTAL
 # ==============================================================================
 if system_role == "🏥 Patient Kiosk":
     st.markdown("""
