@@ -56,12 +56,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- SYSTEM NAVIGATION SIDEBAR ---
-# Toggle/Checkbox para sa Admin/Doctor testing habang nasa Patient Kiosk
 show_sidebar_in_kiosk = st.sidebar.checkbox("🔓 Show Sidebar Menu in Patient Kiosk", value=True)
 
 system_role = st.sidebar.radio("🌐 Select System Portal", ["🏥 Patient Kiosk", "👨‍⚕️ Doctor Portal", "📋 Helpdesk / Admin Desk"])
 
-# 🔒 HIDDEN SIDEBAR LOGIC: Kapag Patient Kiosk ang napili AT NAKA-OFF ang toggle, itatago ang sidebar gamit ang CSS!
 if system_role == "🏥 Patient Kiosk" and not show_sidebar_in_kiosk:
     st.markdown("""
         <style>
@@ -151,8 +149,9 @@ def save_prescription(p_id, doc_name, diagnosis, meds, instructions, signature_b
     cursor.close()
     conn.close()
 
+# 🩺 INUYAT NA BAGONG LISTAHAN NG MGA DOKTOR:
 def get_doctor_roster_names():
-    return ["Dr. Sarah Evans", "Dr. Marcus Vance", "Dr. Althea Reyes", "Dr. Jonathan Cross", "Dr. Paul"]
+    return ["Dr. Paul", "Dr. Sean", "Dr. Generine", "Dr. Nilda"]
 
 # ==============================================================================
 # 1️⃣ PATIENT KIOSK PORTAL
@@ -272,7 +271,6 @@ if system_role == "🏥 Patient Kiosk":
                                 "   - Do NOT provide formal medical diagnoses or exact medication prescriptions.\n"
                                 "   - Always end with a clear reminder that a doctor consultation is strictly required for an official diagnosis and treatment plan."
                             )
-                            # Inayos ang model name sa gemini-1.5-flash-latest para hindi na mag-404 error
                             model = genai.GenerativeModel(model_name='gemini-1.5-flash-latest', system_instruction=sys_instruction)
                             response = model.generate_content(f"Vitals: Temp {vt}°C, HR {vh} BPM, BP {vb}. Symptoms: {prompt}").text
                         except Exception as e:
