@@ -141,15 +141,22 @@ def log_consultation(p_id, temp, hr, bp, symptoms):
 def save_prescription(p_id, doc_name, diagnosis, meds, instructions, signature_b64):
     conn = get_supabase_conn()
     cursor = conn.cursor()
-    cursor.execute("""
-        INSERT INTO prescriptions (patient_id, doctor_name, diagnosis, medicines, instructions, doctor_signature)
-        VALUES (%s, %s, %s, %s, %s, %s)
-    """, (p_id, doc_name, diagnosis, meds, instructions, signature_b64))
+    # Tinitiyak na parehong nai-insert sa DB kung anuman ang column name
+    try:
+        cursor.execute("""
+            INSERT INTO prescriptions (patient_id, doctor_name, diagnosis, medicines, instructions, doctor_signature)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (p_id, doc_name, diagnosis, meds, instructions, signature_b64))
+    except:
+        conn.rollback()
+        cursor.execute("""
+            INSERT INTO prescriptions (patient_id, doctor_name, diagnosis, medicine, instructions, doctor_signature)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (p_id, doc_name, diagnosis, meds, instructions, signature_b64))
     conn.commit()
     cursor.close()
     conn.close()
 
-# 🩺 INUYAT NA BAGONG LISTAHAN NG MGA DOKTOR:
 def get_doctor_roster_names():
     return ["Dr. Paul", "Dr. Sean", "Dr. Generine", "Dr. Nilda"]
 
@@ -406,7 +413,9 @@ elif system_role == "📋 Helpdesk / Admin Desk":
                 if not p_presc.empty:
                     latest_p = p_presc.iloc[0]
                     
-                    formatted_meds = str(latest_p['medicines']).replace('\n', '<br>')
+                    # Safe check para sa medicines vs medicine column
+                    raw_meds = latest_p.get('medicines', latest_p.get('medicine', ''))
+                    formatted_meds = str(raw_meds).replace('\n', '<br>')
                     sig_data = str(latest_p.get('doctor_signature', ''))
 
                     if sig_data.startswith("data:image"):
@@ -415,25 +424,25 @@ elif system_role == "📋 Helpdesk / Admin Desk":
                         sig_text = sig_data.replace("TEXT_SIG:", "")
                         signature_html = f'<p style="font-family: \'Brush Script MT\', cursive, cursive; font-size: 24px; color: #064e3b; margin: 0; text-align: right;">{sig_text}</p>'
                     else:
-                        signature_html = f'<p style="font-family: \'Brush Script MT\', cursive, cursive; font-size: 22px; color: #064e3b; margin: 0; text-align: right;">{latest_p["doctor_name"]}</p>'
+                        signature_html = f'<p style="font-family: \'Brush Script MT\', cursive, cursive; font-size: 22px; color: #064e3b; margin: 0; text-align: right;">{latest_p.get("doctor_name", "")}</p>'
 
                     prescription_html = f"""
                     <div class="prescription-doc">
                         <h2 style="text-align: center; color: #064e3b; margin-bottom: 0;">P.A.C.E. MEDICAL CLINIC</h2>
                         <p style="text-align: center; color: #666; font-size: 0.85rem; margin-top: 2px;">Official Signed Prescription Document</p>
                         <hr style="border: 1px solid #10b981;">
-                        <p><b>Date:</b> {latest_p['created_at']} <span style="float:right;"><b>Rx No:</b> #{latest_p['id']}</span></p>
+                        <p><b>Date:</b> {latest_p.get('created_at', '')} <span style="float:right;"><b>Rx No:</b> #{latest_p.get('id', '')}</span></p>
                         <p><b>Patient Name:</b> {p_info['name']} (Age: {p_info['age']})</p>
-                        <p><b>Attending Physician:</b> {latest_p['doctor_name']}</p>
+                        <p><b>Attending Physician:</b> {latest_p.get('doctor_name', '')}</p>
                         <hr>
-                        <p><b>Diagnosis:</b><br>{latest_p['diagnosis']}</p>
+                        <p><b>Diagnosis:</b><br>{latest_p.get('diagnosis', '')}</p>
                         <h3 style="color: #047857; margin-bottom: 5px;">Rx - Prescribed Medicines:</h3>
                         <p style="background-color: #f4fbf7; padding: 10px; border-radius: 5px; font-family: monospace;">{formatted_meds}</p>
-                        <p><b>Special Instructions:</b><br>{latest_p['instructions']}</p>
+                        <p><b>Special Instructions:</b><br>{latest_p.get('instructions', '')}</p>
                         <br>
                         <div style="text-align: right;">
                             {signature_html}
-                            <p style="margin-top: 0; margin-bottom: 0;">_______________________<br><b>{latest_p['doctor_name']}</b><br>Licensed Physician</p>
+                            <p style="margin-top: 0; margin-bottom: 0;">_______________________<br><b>{latest_p.get('doctor_name', '')}</b><br>Licensed Physician</p>
                         </div>
                     </div>
                     """
