@@ -272,7 +272,8 @@ if system_role == "🏥 Patient Kiosk":
                                 "   - Do NOT provide formal medical diagnoses or exact medication prescriptions.\n"
                                 "   - Always end with a clear reminder that a doctor consultation is strictly required for an official diagnosis and treatment plan."
                             )
-                            model = genai.GenerativeModel(model_name='gemini-1.5-flash', system_instruction=sys_instruction)
+                            # Inayos ang model name sa gemini-1.5-flash-latest para hindi na mag-404 error
+                            model = genai.GenerativeModel(model_name='gemini-1.5-flash-latest', system_instruction=sys_instruction)
                             response = model.generate_content(f"Vitals: Temp {vt}°C, HR {vh} BPM, BP {vb}. Symptoms: {prompt}").text
                         except Exception as e:
                             response = f"⚠️ API Error: {str(e)}\n\n🩺 Please rest and consult the attending doctor."
